@@ -221,27 +221,27 @@ def update_user(id_user):
         conn = connectdb()
         cursor = conn.cursor()
 
-        # Verificar si el usuario existe
+        # check if the user exists
         cursor.execute("SELECT * FROM users WHERE id_user = %s", (id_user,))
         user = cursor.fetchone()
         if not user:
             return jsonify({"message": "User not found"}), 404
 
-        # Actualizar datos del usuario
+        # update the user table
         cursor.execute("""
             UPDATE users 
             SET name = %s, lastname = %s, age = %s, gender = %s, email = %s
             WHERE id_user = %s
         """, (name, lastname, age, gender, email, id_user))
 
-        # Obtener el id_rol del nuevo rol
+        # get the role ID based on the role name
         cursor.execute("SELECT id_rol FROM roles WHERE name_rol = %s", (rol,))
         rol_id = cursor.fetchone()
         if not rol_id:
             return jsonify({"message": "Role not found"}), 400
         rol_id = rol_id[0]
 
-        # Actualizar el rol en user_rol
+        # update the user_rol table
         cursor.execute("""
             UPDATE user_rol 
             SET id_rol = %s
@@ -269,19 +269,16 @@ def delete_user(id_user):
         conn = connectdb()
         cursor = conn.cursor()
 
-        # Verificar si el usuario existe
+        # Check if the user exists
         cursor.execute("SELECT * FROM users WHERE id_user = %s", (id_user,))
         user = cursor.fetchone()
         if not user:
             return jsonify({"message": "User not found"}), 404
 
-        # Borrar primero de user_rol (porque tiene una clave foránea de users)
+        # Delete from user_rol table
         cursor.execute("DELETE FROM user_rol WHERE id_user = %s", (id_user,))
-
-        # Borrar de users
+        # Delete from users table
         cursor.execute("DELETE FROM users WHERE id_user = %s", (id_user,))
-
-        # Confirmar cambios
         conn.commit()
         cursor.close()
         conn.close()
@@ -297,7 +294,9 @@ def delete_user(id_user):
 @cross_origin(supports_credentials=True)
 def get_ghibli_data(id_user):
     """
-    Function to return Studio Ghibli data based on the user's role.
+    function to get data from the Ghibli API based on the user's role
+    Returns: data from the Ghibli API or error message if the user has no role or the role is not recognized
+
     """
     try:
         conn = connectdb()
@@ -319,7 +318,7 @@ def get_ghibli_data(id_user):
 
         user_role = user_role[0].lower()  # Convertir a minúsculas para comparación
 
-        # Definir los endpoints de Studio Ghibli según el rol
+        # define the Ghibli API URL and the endpoints
         ghibli_api_url = "https://ghibliapi.vercel.app"
         endpoints = {
             "admin": "",  # Admin puede acceder a todos los datos
@@ -333,7 +332,7 @@ def get_ghibli_data(id_user):
         if user_role not in endpoints:
             return jsonify({"message": "Role not recognized"}), 400
 
-        # Si es admin, traer todos los datos
+        # if it's an admin, get all the data
         if user_role == "admin":
             data = {}
             for role, endpoint in endpoints.items():
@@ -343,7 +342,7 @@ def get_ghibli_data(id_user):
                         data[role] = response.json()
             return jsonify(data), 200
         else:
-            # Consultar solo el endpoint del usuario
+            # consult the Ghibli API for the data
             response = requests.get(ghibli_api_url + endpoints[user_role])
             if response.status_code != 200:
                 return jsonify({"message": "Error retrieving data from Ghibli API"}), 500
