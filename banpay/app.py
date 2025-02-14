@@ -114,7 +114,7 @@ def get_users():
         conn = connectdb()
         cursor = conn.cursor()
 
-        # INNER JOIN entre users, user_rol, y roles
+        # INNER JOIN between the users, user_rol and roles tables to get the user data and the role name
         cursor.execute("""
             SELECT u.id_user, u.name, u.lastname, u.age, u.email, r.name_rol
             FROM users u
@@ -137,7 +137,7 @@ def get_users():
                 "lastname": user[2],
                 "age": user[3],
                 "email": user[4],
-                "role": user[5]  # El nombre del rol asociado
+                "role": user[5]
             }
             users_list.append(user_dict)
 
@@ -157,7 +157,7 @@ def get_user_by_id(id_user):
         conn = connectdb()
         cursor = conn.cursor()
 
-        # INNER JOIN para obtener el usuario con su rol
+        # INNER JOIN to get the user data and the role name
         cursor.execute("""
             SELECT u.id_user, u.name, u.lastname, u.age, u.email, r.name_rol
             FROM users u
@@ -179,7 +179,7 @@ def get_user_by_id(id_user):
             "lastname": user[2],
             "age": user[3],
             "email": user[4],
-            "role": user[5]  # Nombre del rol asociado
+            "role": user[5]
         }
 
         return jsonify(user_dict), 200
