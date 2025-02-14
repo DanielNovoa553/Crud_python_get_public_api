@@ -11,7 +11,7 @@ def connectdb():
             host='localhost',
             user='postgres',
             password='Inicio01',
-            dbname='benpay'
+            dbname='banpay'
         )
         if connection:
             print("Conexión exitosa")
